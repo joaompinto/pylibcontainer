@@ -1,0 +1,24 @@
+pylibcontainer
+===============
+João Pinto <lamego.pinto@gmail.com>
+:showtitlepage:
+:notitle:
+:noheader:
+:nofooter:
+
+== Introduction
+
+As of May 2018, the container management and orchestration echosystem is widely dominated by applications/utilities writeen in the Go programming language. While this situation is likely to favor the share of resources between different projects, it might also reduce the involvment of an wider base of established «Python» developers.
+
+While in general there there are known advantages from Go when compared to Python, for the this specific case of container management, such differences are likely to be irrelevant.
+
+This implementation should adhere to the https://github.com/opencontainers/runtime-spec[OCI Runtime Specfication] .
+
+== Related links
+
+- Container functions in python - https://pypi.org/project/pyspaces/
+- Linux prctl functions - https://pythonhosted.org/python-prctl/
+- Eventual integration with resource/syscall usage: https://github.com/openjudge/sandbox/
+- Container setup with Go - https://www.infoq.com/articles/build-a-container-golang
+- Per-process, read-only file system view via Linux's unshare() system call
+https://gist.github.com/cocagne/4088467

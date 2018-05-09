@@ -10,10 +10,9 @@ to install this package.
 from setuptools import setup, find_packages
 from os.path import join
 
-name = "your_package"
+name = "pylibcontainer"
 
-desc = "Show detailed information for docker images"
-long_desc = "Shows detailed information for docker images"
+desc = "An OCI Runtime Specification implementation library"
 
 
 with  open('classifiers.txt') as c_file:
