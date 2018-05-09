@@ -1,0 +1,7 @@
+Development Status :: 1 - Planning
+Intended Audience :: Developers
+License :: Freely Distributable
+License :: OSI Approved :: Apache Software License
+Operating System :: OS Independent
+Programming Language :: Python :: 2.7
+Programming Language :: Python :: 3.4
