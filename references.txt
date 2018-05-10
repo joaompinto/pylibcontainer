@@ -1,0 +1,7 @@
+
+https://github.com/meteran/isolate
+https://github.com/jschwinger23/dock
+https://github.com/balabit/furnace
+https://github.com/fireflyc/mini-docker
+https://github.com/gnosek/shoebox
+https://github.com/crashtua/py-syscall
