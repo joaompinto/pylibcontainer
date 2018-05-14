@@ -2,7 +2,7 @@
 # You can test it using:
 #   wget https://partner-images.canonical.com/core/artful/current/ubuntu-artful-core-cloudimg-amd64-root.tar.gz
 #   sudo bash -c "mkdir rootfs; tar xvf ubuntu-artful-core-cloudimg-amd64-root.tar.gz -C rootfs"
-#   sudo python example2.py bash
+#   sudo python example.py bash
 
 from __future__ import print_function
 import subprocess
@@ -40,6 +40,7 @@ def setup_process_isolation():
     if not exists("proc"):
         os.makedirs("proc", 0o700)
     mount_procfs('.')
+
 
 def child():
     setup_process_isolation()
