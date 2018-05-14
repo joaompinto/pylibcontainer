@@ -1,18 +1,18 @@
 
-#
-# wget https://partner-images.canonical.com/core/artful/current/ubuntu-artful-core-cloudimg-amd64-root.tar.gz
-# sudo bash -c "mkdir rootfs; tar xvf ubuntu-artful-core-cloudimg-amd64-root.tar.gz -C rootfs"
-# sudo python example2.py bash
+# You can test it using:
+#   wget https://partner-images.canonical.com/core/artful/current/ubuntu-artful-core-cloudimg-amd64-root.tar.gz
+#   sudo bash -c "mkdir rootfs; tar xvf ubuntu-artful-core-cloudimg-amd64-root.tar.gz -C rootfs"
+#   sudo python example2.py bash
 
+from __future__ import print_function
 import subprocess
-import logging
 import os
 import sys
 from tmsyscall.unshare import unshare, CLONE_NEWNS, CLONE_NEWUTS, CLONE_NEWIPC, CLONE_NEWPID, CLONE_NEWNET
-from tmsyscall.mount import mount,unmount, MS_BIND, MS_PRIVATE, MS_REC, MNT_DETACH
-from tmsyscall.mount import mount_procfs, cleanup_mounts
+from tmsyscall.mount import mount, unmount, MS_BIND, MS_PRIVATE, MS_REC, MNT_DETACH
+from tmsyscall.mount import mount_procfs
 from tmsyscall.pivot_root import pivot_root
-from os.path import exists, join, abspath
+from os.path import exists
 
 
 def setup_process_isolation():
@@ -49,7 +49,8 @@ def child():
 
 def parent(child_pid):
     pid, status = os.waitpid(child_pid, 0)
-    print "wait returned, pid = %d, status = %d" % (pid, status)
+    print("wait returned, pid = %d, status = %d" % (pid, status))
+
 
 def main():
     # Detach from pid namespace so that our child get's a clean /proc with the new namespace
