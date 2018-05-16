@@ -13,10 +13,14 @@ from os.path import join
 with  open('requirements.txt') as r_file:
     requirements = r_file.read()
 
+with  open('README.rst') as r_file:
+    long_desc = r_file.read()
+
 name = "pylibcontainer"
 
 setup(
     version=open(join(name, 'version')).readline().strip("\r\n"),
+    long_description=long_desc,
     install_requires=[x for x in requirements.splitlines() if x],
     packages=find_packages(),
     entry_points='''

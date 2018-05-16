@@ -17,15 +17,12 @@ Installation
 
     pip install pylibcontainer
 
-Configuration
--------------
+Examples
+--------
 
-Something here.
+.. code:: bash
 
-Usage
------
-
-Something else here.
+    sudo pylibcontainer run http://dl-cdn.alpinelinux.org/alpine/v3.7/releases/x86_64/alpine-minirootfs-3.7.0-x86_64.tar.gz -- /bin/sh
 
 Bugs and Feature Requests
 -------------------------
@@ -34,16 +31,6 @@ Bug reports and feature requests are happily accepted via the `GitHub
 Issue Tracker <https://github.com/joaompinto/pylibcontainer/issues>`__.
 Pull requests are welcome. Issues that don't have an accompanying pull
 request will be worked on as my time and priority allows.
-
-Development
-===========
-
-To install for development:
-
-1. Fork the
-   `pylibcontainer <https://github.com/joaompinto/pylibcontainer>`__
-   repository on GitHub
-2. Create a new branch off of master in your fork.
 
 Guidelines
 ----------
@@ -54,14 +41,12 @@ Testing
 Testing is done via `pytest <http://pytest.org/latest/>`__, driven by
 `tox <http://tox.testrun.org/>`__.
 
--  testing is as simple as:
+Testing is as simple as:
 
-   -  ``pip install tox``
-   -  ``tox``
+.. code:: bash
 
--  If you want to pass additional arguments to pytest, add them to the
-   tox command line after "--". i.e., for verbose pytext output on py27
-   tests: ``tox -e py27 -- -v``
+    pip install tox
+    tox
 
 Release Checklist
 -----------------
