@@ -15,7 +15,7 @@ Installation
 
 .. code:: bash
 
-    pip install pylibcontainer
+    sudo pip install pylibcontainer
 
 Examples
 --------

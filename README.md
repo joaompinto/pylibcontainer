@@ -17,7 +17,7 @@ Installation
 ------------
 
 ``` {.sourceCode .bash}
-pip install pylibcontainer
+sudo pip install pylibcontainer
 ```
 
 Examples
@@ -48,7 +48,7 @@ Testing is done via [pytest](http://pytest.org/latest/), driven by
 Testing is as simple as:
 
 ```bash
-pip install tox
+sudo pip install tox
 tox
 ```
 
