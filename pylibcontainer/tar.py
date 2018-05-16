@@ -1,7 +1,9 @@
+from __future__ import print_function
+
 import tarfile
 from os.path import join, exists, basename
 from os import makedirs
-from tempfile import gettempdir, NamedTemporaryFile, mkdtemp
+from tempfile import gettempdir, mkdtemp
 from shutil import move
 
 def extract_layer(layer_fn):

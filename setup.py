@@ -18,7 +18,7 @@ name = "pylibcontainer"
 setup(
     version=open(join(name, 'version')).readline().strip("\r\n"),
     install_requires=[x for x in requirements.splitlines() if x],
-    packages = find_packages(),
+    packages=find_packages(),
     entry_points='''
         [console_scripts]
         pylibcontainer=pylibcontainer.__main__:pylibcontainer

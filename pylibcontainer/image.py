@@ -71,11 +71,13 @@ def download(image_url):
 
 @click.command()
 @click.argument('image_url')
-def run(image_url):
+@click.argument('command', nargs=-1, type=click.Path())
+def run(image_url, command):
     image_protocol = image_url.split(':')[0].lower()
     if image_protocol in ['http', 'https']:
-        image_hash, image_fn = download(image_url)
+        _, image_fn = download(image_url)
     else:
-        image_hash, image_fn = sha256(image_url).hexdigest(), image_url
+        _, image_fn = sha256(image_url).hexdigest(), image_url
     rootfs = extract_layer(image_fn)
-    container.runc(rootfs, "/bin/bash")
+    print("Executing %s" % ' '.join(command))
+    container.runc(rootfs, command)

@@ -8,12 +8,10 @@ pylibcontainer
 [![coverage report for master branch](https://codecov.io/github/joaompinto/pylibcontainer/coverage.svg?branch=master)](https://codecov.io/github/joaompinto/pylibcontainer?branch=master)
 [![sphinx documentation for latest release](https://readthedocs.org/projects/pylibcontainer/badge/?version=latest)](https://readthedocs.org/projects/pylibcontainer/?badge=latest)
 
-
 Requirements
 ------------
 
--   Python 2.7 or 3.4+ (currently tested with 2.7, 3.4)
-
+- Python 2.7 or 3.4+ (currently tested with 2.7, 3.4)
 
 Installation
 ------------
@@ -26,7 +24,7 @@ Examples
 --------
 
 ```bash
-pylibcontainer run http://dl-cdn.alpinelinux.org/alpine/v3.7/releases/x86_64/alpine-minirootfs-3.7.0-x86_64.tar.gz```
+sudo pylibcontainer run http://dl-cdn.alpinelinux.org/alpine/v3.7/releases/x86_64/alpine-minirootfs-3.7.0-x86_64.tar.gz -- /bin/sh
 ```
 
 Bugs and Feature Requests
@@ -38,16 +36,6 @@ Tracker](https://github.com/joaompinto/pylibcontainer/issues).
 Pull requests are welcome. Issues that don't have an accompanying pull
 request will be worked on as my time and priority allows.
 
-Development
-===========
-
-To install for development:
-
-1.  Fork the
-    [pylibcontainer](https://github.com/joaompinto/pylibcontainer)
-    repository on GitHub
-2.  Create a new branch off of master in your fork.
-
 Guidelines
 ----------
 
@@ -57,14 +45,12 @@ Testing
 Testing is done via [pytest](http://pytest.org/latest/), driven by
 [tox](http://tox.testrun.org/).
 
--   testing is as simple as:
-    -   `pip install tox`
-    -   `tox`
--   If you want to pass additional arguments to pytest, add them to the
-    tox command line after "--". i.e., for verbose pytext output on py27
-    tests: `tox -e py27 -- -v`
+Testing is as simple as:
+
+```bash
+pip install tox
+tox
+```
 
 Release Checklist
 -----------------
-
-
