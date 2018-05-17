@@ -71,8 +71,10 @@ def download(image_url):
 
 @click.command()
 @click.argument('image_url')
-@click.argument('command', nargs=-1, type=click.Path())
+@click.argument('command', nargs=-1)
 def run(image_url, command):
+    if not command:
+        command = ['/bin/sh']
     image_protocol = image_url.split(':')[0].lower()
     if image_protocol in ['http', 'https']:
         _, image_fn = download(image_url)

@@ -1,5 +1,7 @@
+backports.shutil_get_terminal_size
 cgroupspy
 click
 clint
+colorama
 requests
 tmsyscall

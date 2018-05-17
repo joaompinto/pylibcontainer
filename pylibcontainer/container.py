@@ -2,7 +2,8 @@
 from __future__ import print_function
 import os
 from tmsyscall.unshare import unshare, CLONE_NEWNS, CLONE_NEWUTS, CLONE_NEWIPC, CLONE_NEWPID, CLONE_NEWNET
-from tmsyscall.mount import mount, unmount, mount_procfs, MS_BIND, MS_PRIVATE, MS_REC, MNT_DETACH
+from tmsyscall.mount import mount, unmount, mount_procfs
+from tmsyscall.mount import MS_BIND, MS_PRIVATE, MS_REC, MNT_DETACH, MS_REMOUNT, MS_RDONLY
 from tmsyscall.pivot_root import pivot_root
 from os.path import exists, join
 
@@ -26,11 +27,15 @@ def setup_process_isolation(rootfs_path):
     old_root = join(root_fs, ".old_root")
     if not exists(old_root):
         os.makedirs(old_root, 0o700)
+
+    # Remount it as readonly
+    mount(root_fs, root_fs, "", MS_BIND|MS_REC|MS_REMOUNT|MS_RDONLY, "")
     pivot_root(root_fs, old_root)
 
     # We don't want the host root to be available to the container
     unmount("/.old_root", MNT_DETACH)
-    os.rmdir("/.old_root")
+
+
 
     os.chdir("/")
 
