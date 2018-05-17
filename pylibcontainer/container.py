@@ -1,11 +1,11 @@
 
 from __future__ import print_function
 import os
+from os.path import exists, join
 from tmsyscall.unshare import unshare, CLONE_NEWNS, CLONE_NEWUTS, CLONE_NEWIPC, CLONE_NEWPID, CLONE_NEWNET
 from tmsyscall.mount import mount, unmount, mount_procfs
 from tmsyscall.mount import MS_BIND, MS_PRIVATE, MS_REC, MNT_DETACH, MS_REMOUNT, MS_RDONLY
 from tmsyscall.pivot_root import pivot_root
-from os.path import exists, join
 
 
 def setup_process_isolation(rootfs_path):
@@ -35,8 +35,6 @@ def setup_process_isolation(rootfs_path):
     # We don't want the host root to be available to the container
     unmount("/.old_root", MNT_DETACH)
 
-
-
     os.chdir("/")
 
     # Mount /proc for apps that need it
@@ -47,11 +45,11 @@ def setup_process_isolation(rootfs_path):
 
 def child(rootfs_path, cmd):
     setup_process_isolation(rootfs_path)
-    os.execvp(cmd[0], cmd)
+    if  len(cmd) > 1 or cmd[0] != '-':
+        os.execvp(cmd[0], cmd)
 
 def parent(child_pid):
-    pid, status = os.waitpid(child_pid, 0)
-    print("wait returned, pid = %d, status = %d" % (pid, status))
+    return os.waitpid(child_pid, 0)
 
 
 def runc(rootfs_path, command):
@@ -60,5 +58,5 @@ def runc(rootfs_path, command):
     pid = os.fork()
     if pid == 0:
         child(rootfs_path, command)
-    else:
-        parent(pid)
+        exit(0)
+    return parent(pid)
