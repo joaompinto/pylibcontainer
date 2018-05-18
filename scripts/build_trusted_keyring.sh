@@ -1,5 +1,5 @@
 #/bin/sh
-KEYRING=pylibcontainer/trusted/keys.gpg
+KEYRING=pylibcontainer/trusted/keyring.gpg
 GPG="gpg --no-default-keyring --keyring $KEYRING"
 rm -f $KEYRING
 $GPG --fingerprint

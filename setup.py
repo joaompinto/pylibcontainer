@@ -22,7 +22,9 @@ setup(
     version=open(join(name, 'version')).readline().strip("\r\n"),
     long_description=long_desc,
     install_requires=[x for x in requirements.splitlines() if x],
-    packages=find_packages(),
+    packages=['pylibcontainer'],
+    package_data={'pylibcontainer': ['trusted/keyring.gpg']},
+    include_package_data=True,
     entry_points='''
         [console_scripts]
         pylibcontainer=pylibcontainer.__main__:pylibcontainer

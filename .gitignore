@@ -56,3 +56,5 @@ docs/html_docs.zip
 
 *.pid
 *.log
+
+*~
