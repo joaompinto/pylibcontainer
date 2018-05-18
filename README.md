@@ -26,8 +26,6 @@ Examples
 ```bash
 sudo pylibcontainer \
     run http://dl-cdn.alpinelinux.org/alpine/v3.7/releases/x86_64/alpine-minirootfs-3.7.0-x86_64.tar.gz
-    pubkey https://alpinelinux.org/keys/ncopa.asc
--- /bin/sh
 ```
 
 Bugs and Feature Requests

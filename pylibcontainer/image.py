@@ -1,7 +1,6 @@
 from __future__ import print_function
 import os
 import re
-from StringIO import StringIO
 import shutil
 import hashlib
 import requests
@@ -62,10 +61,11 @@ def get_sha256sum(download_url):
             if sha256_sum:
                 return url, sha256_sum[0], response.content
 
-    return None, None
+    return None, None, None
 
-def gpg_validate(chksum_url, chksum_data):
+def gpg_verify(chksum_url, chksum_data):
     """ Perform GPG validation """
+    print(chksum_data)
     gpg_url = chksum_url.rsplit(".", 1)[0]+".gpg"
     asc_url = chksum_url.rsplit(".", 1)[0]+".asc"
     possible_paths = (gpg_url, asc_url)
@@ -81,13 +81,14 @@ def gpg_validate(chksum_url, chksum_data):
     print("GPG validation")
     gpg_keyring_fn = join(realpath(dirname(__file__)), 'trusted', 'keys.gpg')
     assert exists(gpg_keyring_fn)
-    gpg = GPG(keyring=gpg_keyring_fn)
+    gpg = GPG(keyring=gpg_keyring_fn, verbose=True)
     print(gpg_sig_data)
     with NamedTemporaryFile(delete=False) as gpg_sig_file:
         print(gpg_sig_file.name)
         gpg_sig_file.write(gpg_sig_data)
         verified = gpg.verify_data(gpg_sig_file.name, chksum_data)
     print(verified.trust_level)
+    return None
 
 def download(image_url):
     """ Download image (if not found in cache) and return it's filename """
@@ -124,7 +125,7 @@ def download(image_url):
     if not sha256sum:
         print_error("Unable to validate rootfs integrity because no SHA256 checksum found")
         exit(3)
-    gpg_status = gpg_validate(sha256url, sha256data)
+    gpg_status = gpg_verify(sha256url, sha256data)
     if gpg_status is None:
         print_error("Unable to validate authenticity, no .gpg file was found ")
         exit(4)
