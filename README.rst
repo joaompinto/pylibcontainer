@@ -22,7 +22,8 @@ Examples
 
 .. code:: bash
 
-    sudo pylibcontainer run http://dl-cdn.alpinelinux.org/alpine/v3.7/releases/x86_64/alpine-minirootfs-3.7.0-x86_64.tar.gz -- /bin/sh
+    sudo pylibcontainer \
+        run http://dl-cdn.alpinelinux.org/alpine/v3.7/releases/x86_64/alpine-minirootfs-3.7.0-x86_64.tar.gz
 
 Bugs and Feature Requests
 -------------------------
@@ -45,7 +46,7 @@ Testing is as simple as:
 
 .. code:: bash
 
-    pip install tox
+    sudo pip install tox
     tox
 
 Release Checklist

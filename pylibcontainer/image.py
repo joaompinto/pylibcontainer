@@ -93,7 +93,9 @@ def download(image_url):
     if not trust_verify or not trust_verify.valid or not trust_verify.username:
         print_error("Integrity/authenticity error - GPG signature mismatch!")
         exit(3)
-    print("GPG Signer:", success(trust_verify.username))
+    print('{0:>10}: {1}'.format("GPG Signer", success(trust_verify.username)))
+    print('{0:>10}: {1}'.format("GPG ID", success(trust_verify.pubkey_fingerprint)))
+    print('{0:>10}: {1}'.format("Creation", success(trust_verify.creation_date)))
 
     return cache.put(tmp_file.name, image_url)
 
