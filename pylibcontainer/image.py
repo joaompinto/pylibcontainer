@@ -1,20 +1,19 @@
 from __future__ import print_function
 import os
-import re
 import shutil
 import hashlib
 import requests
 import click
 from tempfile import NamedTemporaryFile
 from hashlib import sha256
-from os.path import expanduser, join, exists, basename, dirname, realpath
+from os.path import expanduser, join, exists, basename
 from pylibcontainer.utils import HumanSize
 from pylibcontainer.tar import extract_layer
+from pylibcontainer import trust
 from pylibcontainer import container
 from pylibcontainer.colorhelper import print_info, print_error, print_warn, print_success
-from pylibcontainer.colorhelper import success, error
+from pylibcontainer.colorhelper import success
 from clint.textui import progress
-from gnupg import GPG
 
 
 CACHE_PATH = join(expanduser("~"), ".pylibcontainer", "images_cache")
@@ -48,47 +47,6 @@ class Cache(object):
         shutil.move(filename, cache_fn)
         return cache_hash, cache_fn
 
-def get_sha256sum(download_url):
-    """ Try to obtain the sha256 for the file provided at the url """
-    # Support Alpine/Ubuntu Linux schemes as described at:
-    #   https://github.com/joaompinto/pylibcontainer/issues/1
-    possible_gpg_path = (download_url+".sha256", dirname(download_url)+"/SHA256SUMS")
-    file_name = basename(download_url)
-    for url in possible_gpg_path:
-        response = requests.get(url)
-        if response.status_code == 200:
-            sha256_sum = re.findall(r'^(\S+).*' + file_name, response.content)
-            if sha256_sum:
-                return url, sha256_sum[0], response.content
-
-    return None, None, None
-
-def gpg_verify(chksum_url, chksum_data):
-    """ Perform GPG validation """
-    print(chksum_data)
-    gpg_url = chksum_url.rsplit(".", 1)[0]+".gpg"
-    asc_url = chksum_url.rsplit(".", 1)[0]+".asc"
-    possible_paths = (gpg_url, asc_url)
-    gpg_sig_data = None
-    for url in possible_paths:
-        print(url)
-        response = requests.get(url)
-        if response.status_code == 200:
-            gpg_sig_data = response.content
-            break
-    if gpg_sig_data is None:
-        return None
-    print("GPG validation")
-    gpg_keyring_fn = join(realpath(dirname(__file__)), 'trusted', 'keys.gpg')
-    assert exists(gpg_keyring_fn)
-    gpg = GPG(keyring=gpg_keyring_fn, verbose=True)
-    print(gpg_sig_data)
-    with NamedTemporaryFile(delete=False) as gpg_sig_file:
-        print(gpg_sig_file.name)
-        gpg_sig_file.write(gpg_sig_data)
-        verified = gpg.verify_data(gpg_sig_file.name, chksum_data)
-    print(verified.trust_level)
-    return None
 
 def download(image_url):
     """ Download image (if not found in cache) and return it's filename """
@@ -119,18 +77,8 @@ def download(image_url):
         )
         exit(2)
 
-    # Not cached, valid remote info, attempt to download
-    # But first try to locate the SHA256 cheksum
-    sha256url, sha256sum, sha256data = get_sha256sum(image_url)
-    if not sha256sum:
-        print_error("Unable to validate rootfs integrity because no SHA256 checksum found")
-        exit(3)
-    gpg_status = gpg_verify(sha256url, sha256data)
-    if gpg_status is None:
-        print_error("Unable to validate authenticity, no .gpg file was found ")
-        exit(4)
-
-    print("Downloading image... {0} [{1:.2S}]".format(basename(image_url), HumanSize(file_size)))
+    # Dowload image
+    print_info("Downloading image... ", "{0} [{1:.2S}]".format(basename(image_url), HumanSize(file_size)))
     remote_sha256 = hashlib.sha256()
     response = requests.get(image_url, stream=True)
     with NamedTemporaryFile(delete=False) as tmp_file:
@@ -139,11 +87,13 @@ def download(image_url):
                 remote_sha256.update(chunk)
                 tmp_file.write(chunk)
                 tmp_file.flush()
-    if remote_sha256.hexdigest() == sha256sum:
-        print("SHA256 Integrity - " + success("OK"))
-    else:
-        print("SHA256 Integrity - " + error("MISMATCH"))
+
+    # Verify image integrity
+    trust_verify = trust.verify(image_url, tmp_file.name, remote_sha256.hexdigest())
+    if not trust_verify or not trust_verify.valid or not trust_verify.username:
+        print_error("Integrity/authenticity error - GPG signature mismatch!")
         exit(3)
+    print("GPG Signer:", success(trust_verify.username))
 
     return cache.put(tmp_file.name, image_url)
 
