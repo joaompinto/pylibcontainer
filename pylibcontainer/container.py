@@ -1,11 +1,28 @@
-
 from __future__ import print_function
 import os
+import pwd
+import grp
 from os.path import exists, join
 from tmsyscall.unshare import unshare, CLONE_NEWNS, CLONE_NEWUTS, CLONE_NEWIPC, CLONE_NEWPID, CLONE_NEWNET
 from tmsyscall.mount import mount, unmount, mount_procfs
 from tmsyscall.mount import MS_BIND, MS_PRIVATE, MS_REC, MNT_DETACH, MS_REMOUNT, MS_RDONLY
 from tmsyscall.pivot_root import pivot_root
+
+def drop_privileges(uid_name='nobody', gid_name='nogroup'):
+
+    # Get the uid/gid from the name
+    running_uid = pwd.getpwnam(uid_name).pw_uid
+    running_gid = grp.getgrnam(gid_name).gr_gid
+
+    # Remove group privileges
+    os.setgroups([])
+
+    # Try setting the new uid/gid
+    os.setgid(running_gid)
+    os.setuid(running_uid)
+
+    # Ensure a very conservative umask
+    _ = os.umask(0o77)
 
 
 def setup_process_isolation(rootfs_path):
@@ -18,6 +35,7 @@ def setup_process_isolation(rootfs_path):
     mount('none', '/', None, MS_REC|MS_PRIVATE, "")
 
     root_fs = rootfs_path
+    os.chmod(rootfs_path, 0o755)
 
     # This bind mount call is needed to satisfy a requirement of the `pivotroot` system call
     #   "new_root and put_old must not be on the same file system as the current root"
@@ -45,6 +63,7 @@ def setup_process_isolation(rootfs_path):
 
 def child(rootfs_path, cmd):
     setup_process_isolation(rootfs_path)
+    drop_privileges()
     if  len(cmd) > 1 or cmd[0] != '-':
         os.execvp(cmd[0], cmd)
 
