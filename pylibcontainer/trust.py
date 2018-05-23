@@ -29,10 +29,11 @@ def verify(download_url, local_filename, sha256sum):
     """ Verify integrity/authenticity a file """
 
     # If detached signatured is found, use method a)
-    asc_url = download_url+".asc"
-    response = requests.get(asc_url)
-    if response.status_code == 200:
-        return gpg_verify(response.content, local_filename)
+    for ext in ['.asc', '.sig']:
+        asc_url = download_url+ext
+        response = requests.get(asc_url)
+        if response.status_code == 200:
+            return gpg_verify(response.content, local_filename)
 
     # If SHA256SUMS is found, follow scheme b)
     sha256sum_url = dirname(download_url)+"/SHA256SUMS"

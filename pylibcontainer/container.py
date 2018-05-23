@@ -9,6 +9,10 @@ from tmsyscall.unshare import unshare, CLONE_NEWNS, CLONE_NEWUTS, CLONE_NEWIPC, 
 from tmsyscall.mount import mount, unmount, mount_procfs
 from tmsyscall.mount import MS_BIND, MS_PRIVATE, MS_REC, MNT_DETACH, MS_REMOUNT, MS_RDONLY
 from tmsyscall.pivot_root import pivot_root
+from pylibcontainer.utils import HumanSize
+from pylibcontainer.colorhelper import print_info
+
+DEFAULT_limit_in_bytes = 1024*1024
 
 def drop_privileges(uid_name='nobody', gid_name='nogroup'):
 
@@ -26,11 +30,24 @@ def drop_privileges(uid_name='nobody', gid_name='nogroup'):
     # Ensure a very conservative umask
     _ = os.umask(0o77)
 
-def setup_memory_cgroup(container_id):
+def setup_memory_cgroup(container_id, pid):
     """ Create cgroup for the container id """
     cgroup_tree = trees.Tree()
-    cgroup_set = cgroup_tree.get_node_by_path('/memory/')
-    container_mem_cgroup = cgroup_set.create_cgroup(container_id)
+    cgroup_set = cgroup_tree.get_node_by_path('/memory/pylibcontainer')
+    if not cgroup_set:
+        cgroup_set = cgroup_tree.get_node_by_path('/memory/')
+        pylibcontainer_cgroup = cgroup_set.create_cgroup('pylibcontainer')
+        cgroup_set = pylibcontainer_cgroup
+
+    # container_mem_cgroup
+    new_group = cgroup_set.create_cgroup(container_id)
+    new_group.controller.tasks = pid
+    new_group.controller.limit_in_bytes = DEFAULT_limit_in_bytes
+
+def delete_memory_cgroup(container_id):
+    cgroup_tree = trees.Tree()
+    cgroup_set = cgroup_tree.get_node_by_path('/memory/pylibcontainer')
+    cgroup_set.delete_cgroup(container_id)
 
 
 def setup_process_isolation(rootfs_path):
@@ -76,11 +93,16 @@ def child(rootfs_path, cmd):
         os.execvp(cmd[0], cmd)
 
 def parent(child_pid):
-    return os.waitpid(child_pid, 0)
+    container_id = str(uuid4())
+    setup_memory_cgroup(container_id, child_pid)
+    result = os.waitpid(child_pid, 0)
+    delete_memory_cgroup(container_id)
+    return result
 
 
 def runc(rootfs_path, command):
     # Detach from pid namespace so that our child get's a clean /proc with the new namespace
+    print_info("Memory limit:", "{0:.2S}".format(HumanSize(DEFAULT_limit_in_bytes)))
     unshare(CLONE_NEWPID)
     pid = os.fork()
     if pid == 0:
