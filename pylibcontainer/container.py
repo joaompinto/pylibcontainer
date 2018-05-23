@@ -2,7 +2,9 @@ from __future__ import print_function
 import os
 import pwd
 import grp
+from uuid import uuid4
 from os.path import exists, join
+from cgroupspy import trees
 from tmsyscall.unshare import unshare, CLONE_NEWNS, CLONE_NEWUTS, CLONE_NEWIPC, CLONE_NEWPID, CLONE_NEWNET
 from tmsyscall.mount import mount, unmount, mount_procfs
 from tmsyscall.mount import MS_BIND, MS_PRIVATE, MS_REC, MNT_DETACH, MS_REMOUNT, MS_RDONLY
@@ -23,6 +25,12 @@ def drop_privileges(uid_name='nobody', gid_name='nogroup'):
 
     # Ensure a very conservative umask
     _ = os.umask(0o77)
+
+def setup_memory_cgroup(container_id):
+    """ Create cgroup for the container id """
+    cgroup_tree = trees.Tree()
+    cgroup_set = cgroup_tree.get_node_by_path('/memory/')
+    container_mem_cgroup = cgroup_set.create_cgroup(container_id)
 
 
 def setup_process_isolation(rootfs_path):
