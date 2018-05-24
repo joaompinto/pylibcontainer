@@ -10,7 +10,7 @@ from tmsyscall.mount import mount, unmount, mount_procfs
 from tmsyscall.mount import MS_BIND, MS_PRIVATE, MS_REC, MNT_DETACH, MS_REMOUNT, MS_RDONLY
 from tmsyscall.pivot_root import pivot_root
 from pylibcontainer.utils import HumanSize
-from pylibcontainer.colorhelper import print_info
+from pylibcontainer.colorhelper import print_info, print_list
 
 DEFAULT_limit_in_bytes = 1024*1024
 
@@ -48,6 +48,18 @@ def delete_memory_cgroup(container_id):
     cgroup_tree = trees.Tree()
     cgroup_set = cgroup_tree.get_node_by_path('/memory/pylibcontainer')
     cgroup_set.delete_cgroup(container_id)
+
+def print_memory_stats(container_id):
+    cgroup_tree = trees.Tree()
+    cgroup_set = cgroup_tree.get_node_by_path('/memory/pylibcontainer/' + container_id)
+    controler = cgroup_set.controller
+    max_usage_in_bytes = controler.max_usage_in_bytes
+    memsw_max_usage_in_bytes = controler.memsw_max_usage_in_bytes
+    info_list = {
+        "mem used" : "{0:.2S}".format(HumanSize(max_usage_in_bytes)),
+        "mem+swap used": "{0:.2S}".format(HumanSize(memsw_max_usage_in_bytes))
+    }
+    print_list("Max Mem Info", info_list)
 
 
 def setup_process_isolation(rootfs_path):
@@ -96,6 +108,7 @@ def parent(child_pid):
     container_id = str(uuid4())
     setup_memory_cgroup(container_id, child_pid)
     result = os.waitpid(child_pid, 0)
+    print_memory_stats(container_id)
     delete_memory_cgroup(container_id)
     return result
 
