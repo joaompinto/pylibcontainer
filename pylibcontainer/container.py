@@ -5,11 +5,12 @@ import grp
 from uuid import uuid4
 from os.path import exists, join
 from cgroupspy import trees
+
 from pyroute2 import netns
 from tmsyscall.unshare import unshare, setns
 from tmsyscall.unshare import CLONE_NEWNS, CLONE_NEWUTS, CLONE_NEWIPC, CLONE_NEWPID, CLONE_NEWNET
-from tmsyscall.mount import mount, unmount, mount_procfs
 from tmsyscall.mount import MS_BIND, MS_PRIVATE, MS_REC, MNT_DETACH, MS_REMOUNT, MS_RDONLY
+from tmsyscall.mount import mount, unmount, mount_procfs
 from tmsyscall.pivot_root import pivot_root
 from pylibcontainer.utils import HumanSize
 from pylibcontainer.colorhelper import print_info, print_list
@@ -17,6 +18,7 @@ from pylibcontainer.network import set_loopback, set_container_veth, set_host_ve
 
 DEFAULT_limit_in_bytes = 1024*1024
 NETNS_DIR = "/var/run/netns/"
+
 
 def drop_privileges(uid_name='nobody', gid_name='nogroup'):
 
@@ -105,17 +107,17 @@ def child(rootfs_path, cmd, container_id):
     newns = os.open(NETNS_DIR + container_id, os.O_RDONLY)
     setup_process_isolation(rootfs_path)
     setns(newns, 0)
-    set_container_veth(container_id)
+    set_container_veth()
     set_loopback()
     drop_privileges()
     if  len(cmd) > 1 or cmd[0] != '-':
         os.execvp(cmd[0], cmd)
     os.close(newns)
 
-def parent(child_pid, container_id):
+def parent(child_pid):
+    container_id = str(uuid4())
     setup_memory_cgroup(container_id, child_pid)
     result = os.waitpid(child_pid, 0)
-    netns.remove(container_id)
     print_memory_stats(container_id)
     delete_memory_cgroup(container_id)
     return result
@@ -132,4 +134,4 @@ def runc(rootfs_path, command):
     if pid == 0:
         child(rootfs_path, command, container_id)
         exit(0)
-    return parent(pid, container_id)
+    return parent(pid)
