@@ -13,6 +13,7 @@ from pylibcontainer import trust
 from pylibcontainer import container
 from pylibcontainer.colorhelper import print_info, print_error, print_warn, print_success
 from pylibcontainer.colorhelper import success
+from pylibcontainer.image_index import get_url
 from clint.textui import progress
 
 
@@ -50,6 +51,7 @@ class Cache(object):
 
 def download(image_url):
     """ Download image (if not found in cache) and return it's filename """
+
     response = requests.head(image_url)
     file_size = remote_file_size = int(response.headers.get('Content-Length'))
     remote_last_modified = response.headers.get('Last-Modified')
@@ -104,6 +106,11 @@ def download(image_url):
 @click.argument('image_url')
 @click.argument('command', nargs=-1)
 def run(image_url, command):
+    url = get_url(image_url)
+    image_url = url or image_url
+    if not image_url:
+        print_info("No index was found for image", image_url)
+        exit(5)
     is_validate_only = False
     if not command:
         command = ['/bin/sh']

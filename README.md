@@ -24,12 +24,7 @@ Examples
 --------
 
 ```bash
-<<<<<<< HEAD
-sudo pylibcontainer run http://dl-cdn.alpinelinux.org/alpine/v3.7/releases/x86_64/alpine-minirootfs-3.7.0-x86_64.tar.gz
-=======
-sudo pylibcontainer \
-    run http://dl-cdn.alpinelinux.org/alpine/v3.7/releases/x86_64/alpine-minirootfs-3.7.0-x86_64.tar.gz
->>>>>>> 5af11dab55470f70941fa3eb9bee5dae3d90461f
+sudo pylibcontainer run alpine
 ```
 
 Bugs and Feature Requests
