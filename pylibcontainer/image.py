@@ -104,8 +104,9 @@ def download(image_url):
 
 @click.command()
 @click.argument('image_url')
+@click.option('--as_root', is_flag=True)
 @click.argument('command', nargs=-1)
-def run(image_url, command):
+def run(image_url, command, as_root):
     url = get_url(image_url)
     image_url = url or image_url
     if not image_url:
@@ -125,8 +126,8 @@ def run(image_url, command):
         print("Validating container setup with the rootfs")
     else:
         print_info("Executing", ' '.join(command))
-    _, exit_code = container.runc(rootfs, command)
+    _, exit_code = container.runc(rootfs, command, as_root)
     if exit_code != 0:
-        print_error("An error was detected")
+        print_error("Last command returned an error")
     elif is_validate_only:
         print_success("OK")

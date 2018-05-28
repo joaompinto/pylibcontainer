@@ -103,13 +103,14 @@ def setup_process_isolation(rootfs_path):
         os.makedirs("proc", 0o700)
     mount_procfs('.')  # py
 
-def child(rootfs_path, cmd, container_id):
+def child(rootfs_path, cmd, container_id, as_root):
     newns = os.open(NETNS_DIR + container_id, os.O_RDONLY)
     setup_process_isolation(rootfs_path)
     setns(newns, 0)
     set_container_veth()
     set_loopback()
-    drop_privileges()
+    if not as_root:
+        drop_privileges()
     if  len(cmd) > 1 or cmd[0] != '-':
         os.execvp(cmd[0], cmd)
     os.close(newns)
@@ -123,7 +124,7 @@ def parent(child_pid):
     return result
 
 
-def runc(rootfs_path, command):
+def runc(rootfs_path, command, as_root):
     container_id = str(uuid4())
     netns.create(container_id)
     set_host_veth(container_id)
@@ -132,6 +133,6 @@ def runc(rootfs_path, command):
     unshare(CLONE_NEWPID)
     pid = os.fork()
     if pid == 0:
-        child(rootfs_path, command, container_id)
+        child(rootfs_path, command, container_id, as_root)
         exit(0)
     return parent(pid)
