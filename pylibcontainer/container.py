@@ -21,6 +21,7 @@ NETNS_DIR = "/var/run/netns/"
 
 
 def drop_privileges(uid_name='nobody', gid_name='nogroup'):
+    """ Switch from root to an uid/gid """
 
     # Get the uid/gid from the name
     running_uid = pwd.getpwnam(uid_name).pw_uid
@@ -68,7 +69,8 @@ def print_memory_stats(container_id):
     print_list("Max Mem Info", info_list)
 
 
-def setup_process_isolation(rootfs_path):
+def setup_process_isolation(rootfs_path, overlay_path):
+
     # Detach from parent's mount, hostname, ipc and net  namespaces
     unshare(CLONE_NEWNS| CLONE_NEWUTS | CLONE_NEWIPC| CLONE_NEWNET)
 
@@ -77,21 +79,21 @@ def setup_process_isolation(rootfs_path):
     # This is needed to prevent mounts in this container leaking to the parent.
     mount('none', '/', None, MS_REC|MS_PRIVATE, "")
 
-    root_fs = rootfs_path
+    # chmod / 755 for unprivileged user access
     os.chmod(rootfs_path, 0o755)
 
     # This bind mount call is needed to satisfy a requirement of the `pivotroot` system call
     #   "new_root and put_old must not be on the same file system as the current root"
     # It is achieved by mounting "new_root" as a bind mount to "new root"
-    mount(root_fs, root_fs, "", MS_BIND|MS_REC, "")
+    mount(rootfs_path, rootfs_path, "", MS_BIND|MS_REC, "")
 
-    old_root = join(root_fs, ".old_root")
+    old_root = join(rootfs_path, ".old_root")
     if not exists(old_root):
         os.makedirs(old_root, 0o700)
 
-    # Remount it as readonly
-    mount(root_fs, root_fs, "", MS_BIND|MS_REC|MS_REMOUNT|MS_RDONLY, "")
-    pivot_root(root_fs, old_root)
+    # Remount it as read-only
+    mount(rootfs_path, rootfs_path, "", MS_BIND|MS_REC|MS_REMOUNT|MS_RDONLY, "")
+    pivot_root(rootfs_path, old_root)
 
     # We don't want the host root to be available to the container
     unmount("/.old_root", MNT_DETACH)
@@ -103,9 +105,9 @@ def setup_process_isolation(rootfs_path):
         os.makedirs("proc", 0o700)
     mount_procfs('.')  # py
 
-def child(rootfs_path, cmd, container_id, as_root):
+def child(rootfs_path, cmd, container_id, as_root, overlay):
     newns = os.open(NETNS_DIR + container_id, os.O_RDONLY)
-    setup_process_isolation(rootfs_path)
+    setup_process_isolation(rootfs_path, overlay)
     setns(newns, 0)
     set_container_veth()
     set_loopback()
@@ -124,7 +126,7 @@ def parent(child_pid):
     return result
 
 
-def runc(rootfs_path, command, as_root):
+def runc(rootfs_path, command, as_root, overlay):
     container_id = str(uuid4())
     netns.create(container_id)
     set_host_veth(container_id)
@@ -133,6 +135,6 @@ def runc(rootfs_path, command, as_root):
     unshare(CLONE_NEWPID)
     pid = os.fork()
     if pid == 0:
-        child(rootfs_path, command, container_id, as_root)
+        child(rootfs_path, command, container_id, as_root, overlay)
         exit(0)
     return parent(pid)
