@@ -64,8 +64,7 @@ def download(image_url):
     if cached_image:
         if remote_is_valid:
             cache_fn, cache_hash, last_modified, file_size = cached_image
-            print(remote_last_modified, last_modified)
-            if remote_file_size == file_size and remote_last_modified > last_modified:
+            if remote_file_size == file_size and remote_last_modified < last_modified:
                 print_info("Using file from cache", CACHE_PATH)
                 return cache_hash, cache_fn
             print_info("Downloading new remote file because an update was found")

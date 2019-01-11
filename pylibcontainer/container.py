@@ -66,7 +66,8 @@ def print_memory_stats(container_id):
         "mem used" : "{0:.2S}".format(HumanSize(max_usage_in_bytes)),
         "mem+swap used": "{0:.2S}".format(HumanSize(memsw_max_usage_in_bytes))
     }
-    print_list("Max Mem Info", info_list)
+    if max_usage_in_bytes > 0:
+        print_list("Max Mem Info", info_list)
 
 
 def setup_process_isolation(rootfs_path, overlay_path):
