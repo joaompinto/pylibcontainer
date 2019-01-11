@@ -11,13 +11,13 @@ pylibcontainer
 Requirements
 ------------
 
-- Python 2.7 or 3.4+ (currently tested with 2.7, 3.4)
+- Python 3.7+ (currently tested with 3.7)
 
 Installation
 ------------
 
 ``` {.sourceCode .bash}
-sudo pip install pylibcontainer
+sudo pip install https://github.com/joaompinto/pylibcontainer/archive/master.zip
 ```
 
 Examples

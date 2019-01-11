@@ -8,22 +8,21 @@ latest release|
 Requirements
 ------------
 
--  Python 2.7 or 3.4+ (currently tested with 2.7, 3.4)
+-  Python 3.7+ (currently tested with 3.7)
 
 Installation
 ------------
 
 .. code:: bash
 
-    sudo pip install pylibcontainer
+    sudo pip install https://github.com/joaompinto/pylibcontainer/archive/master.zip
 
 Examples
 --------
 
 .. code:: bash
 
-    sudo pylibcontainer \
-        run http://dl-cdn.alpinelinux.org/alpine/v3.7/releases/x86_64/alpine-minirootfs-3.7.0-x86_64.tar.gz
+    sudo pylibcontainer run alpine
 
 Bugs and Feature Requests
 -------------------------

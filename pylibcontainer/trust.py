@@ -13,13 +13,13 @@
 import requests
 import re
 from gnupg import GPG
-from StringIO import StringIO
+from io import BytesIO
 from os.path import join, dirname, realpath, basename
 from tempfile import NamedTemporaryFile
 
 def gpg_verify(gpg_signature, filename):
     """ Verify that the signature is valid for the content of the filename """
-    gpg_sign_stream = StringIO(gpg_signature)
+    gpg_sign_stream = BytesIO(gpg_signature)
     gpg_keyring_fn = join(realpath(dirname(__file__)), 'trusted', 'keyring.gpg')
     gpg = GPG(keyring=gpg_keyring_fn)
     return gpg.verify_file(gpg_sign_stream, filename)

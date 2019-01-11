@@ -2,8 +2,9 @@ cgroupspy
 click
 clint
 colorama
+termcolor
 python-gnupg
-python
 requests
 tmsyscall
 pyroute2
+python-dateutil

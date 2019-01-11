@@ -1,9 +1,9 @@
 
 URL_MAP = {
     'alpine':
-    'http://dl-cdn.alpinelinux.org/alpine/v3.7/releases/x86_64/alpine-minirootfs-3.7.0-x86_64.tar.gz',
+    'http://dl-cdn.alpinelinux.org/alpine/v3.8/releases/x86_64/alpine-minirootfs-3.8.2-x86_64.tar.gz',
     'ubuntu':
-    'https://cloud-images.ubuntu.com/artful/current/artful-server-cloudimg-amd64.tar.gz'
+    'https://cloud-images.ubuntu.com/releases/18.10/release/ubuntu-18.10-server-cloudimg-amd64.tar.gz'
 }
 
 

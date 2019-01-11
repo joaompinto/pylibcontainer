@@ -7,15 +7,16 @@ import click
 from tempfile import NamedTemporaryFile
 from hashlib import sha256
 from os.path import expanduser, join, exists, basename
-from pylibcontainer.utils import HumanSize
-from pylibcontainer.tar import extract_layer
-from pylibcontainer import trust
-from pylibcontainer import container
-from pylibcontainer.colorhelper import print_info, print_error, print_warn, print_success
-from pylibcontainer.colorhelper import success
-from pylibcontainer.image_index import get_url
+from .utils import HumanSize
+from .tar import extract_layer
+from . import trust
+from . import container
+from .colorhelper import print_info, print_error, print_warn, print_success
+from .colorhelper import success
+from .image_index import get_url
 from clint.textui import progress
-
+from dateutil.parser import parse as parsedate
+from datetime import datetime
 
 CACHE_PATH = join(expanduser("~"), ".pylibcontainer", "images_cache")
 
@@ -23,19 +24,19 @@ CACHE_PATH = join(expanduser("~"), ".pylibcontainer", "images_cache")
 class Cache(object):
     cache_dir = CACHE_PATH
 
-    """ Provides an image cahcing mechanism on disk """
+    """ Provides an image caching mechanism on disk """
     def __init__(self):
         if not exists(CACHE_PATH):
             os.makedirs(CACHE_PATH, 0o700)
 
     def get(self, cache_key, default=None):
         """ return info for cached file """
-        cache_hash = sha256(cache_key).hexdigest()
+        cache_hash = sha256(cache_key.encode()).hexdigest()
         cache_fn = join(CACHE_PATH, "url_" + cache_hash)
 
         if exists(cache_fn):
             file_stat = os.stat(cache_fn)
-            last_modified = file_stat.st_mtime
+            last_modified = datetime.fromtimestamp(file_stat.st_mtime)
             file_size = file_stat.st_size
             return cache_fn, cache_hash, last_modified, file_size
 
@@ -43,7 +44,7 @@ class Cache(object):
 
     def put(self, filename, cache_key):
         """ put a file into cache """
-        cache_hash = sha256(cache_key).hexdigest()
+        cache_hash = sha256(cache_key.encode()).hexdigest()
         cache_fn = join(CACHE_PATH, "url_" + cache_hash)
         shutil.move(filename, cache_fn)
         return cache_hash, cache_fn
@@ -54,7 +55,7 @@ def download(image_url):
 
     response = requests.head(image_url)
     file_size = remote_file_size = int(response.headers.get('Content-Length'))
-    remote_last_modified = response.headers.get('Last-Modified')
+    remote_last_modified = parsedate(response.headers.get('Last-Modified')).replace(tzinfo=None)
     remote_is_valid = response.status_code == 200 and file_size and remote_last_modified
 
     # Check if image is on cache
@@ -63,6 +64,7 @@ def download(image_url):
     if cached_image:
         if remote_is_valid:
             cache_fn, cache_hash, last_modified, file_size = cached_image
+            print(remote_last_modified, last_modified)
             if remote_file_size == file_size and remote_last_modified > last_modified:
                 print_info("Using file from cache", CACHE_PATH)
                 return cache_hash, cache_fn
