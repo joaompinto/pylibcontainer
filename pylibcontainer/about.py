@@ -1,0 +1,7 @@
+__title__ = "Openpipe"
+__version__ = "0.0.2"
+__summary__ = "An OCI Runtime Specification implementation library in Python"
+__uri__ = "https://github.com/joaompinto/pylibcontainer"
+__author__ = "João Pinto"
+__email__ = "lamego.pinto@gmail.com"
+__license__ = "APACHE-2"

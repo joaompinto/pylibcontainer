@@ -8,19 +8,32 @@ from cgroupspy import trees
 
 from pyroute2 import netns
 from tmsyscall.unshare import unshare, setns
-from tmsyscall.unshare import CLONE_NEWNS, CLONE_NEWUTS, CLONE_NEWIPC, CLONE_NEWPID, CLONE_NEWNET
-from tmsyscall.mount import MS_BIND, MS_PRIVATE, MS_REC, MNT_DETACH, MS_REMOUNT, MS_RDONLY
+from tmsyscall.unshare import (
+    CLONE_NEWNS,
+    CLONE_NEWUTS,
+    CLONE_NEWIPC,
+    CLONE_NEWPID,
+    CLONE_NEWNET,
+)
+from tmsyscall.mount import (
+    MS_BIND,
+    MS_PRIVATE,
+    MS_REC,
+    MNT_DETACH,
+    MS_REMOUNT,
+    MS_RDONLY,
+)
 from tmsyscall.mount import mount, unmount, mount_procfs
 from tmsyscall.pivot_root import pivot_root
 from pylibcontainer.utils import HumanSize
 from pylibcontainer.colorhelper import print_info, print_list
 from pylibcontainer.network import set_loopback, set_container_veth, set_host_veth
 
-DEFAULT_limit_in_bytes = 1024*1024
+DEFAULT_limit_in_bytes = 1024 * 1024
 NETNS_DIR = "/var/run/netns/"
 
 
-def drop_privileges(uid_name='nobody', gid_name='nogroup'):
+def drop_privileges(uid_name="nobody", gid_name="nogroup"):
     """ Switch from root to an uid/gid """
 
     # Get the uid/gid from the name
@@ -37,13 +50,14 @@ def drop_privileges(uid_name='nobody', gid_name='nogroup'):
     # Ensure a very conservative umask
     _ = os.umask(0o77)
 
+
 def setup_memory_cgroup(container_id, pid):
     """ Create cgroup for the container id """
     cgroup_tree = trees.Tree()
-    cgroup_set = cgroup_tree.get_node_by_path('/memory/pylibcontainer')
+    cgroup_set = cgroup_tree.get_node_by_path("/memory/pylibcontainer")
     if not cgroup_set:
-        cgroup_set = cgroup_tree.get_node_by_path('/memory/')
-        pylibcontainer_cgroup = cgroup_set.create_cgroup('pylibcontainer')
+        cgroup_set = cgroup_tree.get_node_by_path("/memory/")
+        pylibcontainer_cgroup = cgroup_set.create_cgroup("pylibcontainer")
         cgroup_set = pylibcontainer_cgroup
 
     # container_mem_cgroup
@@ -51,20 +65,22 @@ def setup_memory_cgroup(container_id, pid):
     new_group.controller.tasks = pid
     new_group.controller.limit_in_bytes = DEFAULT_limit_in_bytes
 
+
 def delete_memory_cgroup(container_id):
     cgroup_tree = trees.Tree()
-    cgroup_set = cgroup_tree.get_node_by_path('/memory/pylibcontainer')
+    cgroup_set = cgroup_tree.get_node_by_path("/memory/pylibcontainer")
     cgroup_set.delete_cgroup(container_id)
+
 
 def print_memory_stats(container_id):
     cgroup_tree = trees.Tree()
-    cgroup_set = cgroup_tree.get_node_by_path('/memory/pylibcontainer/' + container_id)
+    cgroup_set = cgroup_tree.get_node_by_path("/memory/pylibcontainer/" + container_id)
     controler = cgroup_set.controller
     max_usage_in_bytes = controler.max_usage_in_bytes
     memsw_max_usage_in_bytes = controler.memsw_max_usage_in_bytes
     info_list = {
-        "mem used" : "{0:.2S}".format(HumanSize(max_usage_in_bytes)),
-        "mem+swap used": "{0:.2S}".format(HumanSize(memsw_max_usage_in_bytes))
+        "mem used": "{0:.2S}".format(HumanSize(max_usage_in_bytes)),
+        "mem+swap used": "{0:.2S}".format(HumanSize(memsw_max_usage_in_bytes)),
     }
     if max_usage_in_bytes > 0:
         print_list("Max Mem Info", info_list)
@@ -73,12 +89,12 @@ def print_memory_stats(container_id):
 def setup_process_isolation(rootfs_path, overlay_path):
 
     # Detach from parent's mount, hostname, ipc and net  namespaces
-    unshare(CLONE_NEWNS| CLONE_NEWUTS | CLONE_NEWIPC| CLONE_NEWNET)
+    unshare(CLONE_NEWNS | CLONE_NEWUTS | CLONE_NEWIPC | CLONE_NEWNET)
 
     # Set mount propagation to private recursively. Hopefully equivalent to
     #    mount --make-rprivate /
     # This is needed to prevent mounts in this container leaking to the parent.
-    mount('none', '/', None, MS_REC|MS_PRIVATE, "")
+    mount("none", "/", None, MS_REC | MS_PRIVATE, "")
 
     # chmod / 755 for unprivileged user access
     os.chmod(rootfs_path, 0o755)
@@ -86,14 +102,14 @@ def setup_process_isolation(rootfs_path, overlay_path):
     # This bind mount call is needed to satisfy a requirement of the `pivotroot` system call
     #   "new_root and put_old must not be on the same file system as the current root"
     # It is achieved by mounting "new_root" as a bind mount to "new root"
-    mount(rootfs_path, rootfs_path, "", MS_BIND|MS_REC, "")
+    mount(rootfs_path, rootfs_path, "", MS_BIND | MS_REC, "")
 
     old_root = join(rootfs_path, ".old_root")
     if not exists(old_root):
         os.makedirs(old_root, 0o700)
 
     # Remount it as read-only
-    mount(rootfs_path, rootfs_path, "", MS_BIND|MS_REC|MS_REMOUNT|MS_RDONLY, "")
+    mount(rootfs_path, rootfs_path, "", MS_BIND | MS_REC | MS_REMOUNT | MS_RDONLY, "")
     pivot_root(rootfs_path, old_root)
 
     # We don't want the host root to be available to the container
@@ -104,7 +120,8 @@ def setup_process_isolation(rootfs_path, overlay_path):
     # Mount /proc for apps that need it
     if not exists("proc"):
         os.makedirs("proc", 0o700)
-    mount_procfs('.')  # py
+    mount_procfs(".")  # py
+
 
 def child(rootfs_path, cmd, container_id, as_root, overlay):
     newns = os.open(NETNS_DIR + container_id, os.O_RDONLY)
@@ -114,9 +131,10 @@ def child(rootfs_path, cmd, container_id, as_root, overlay):
     set_loopback()
     if not as_root:
         drop_privileges()
-    if  len(cmd) > 1 or cmd[0] != '-':
+    if len(cmd) > 1 or cmd[0] != "-":
         os.execvp(cmd[0], cmd)
     os.close(newns)
+
 
 def parent(child_pid):
     container_id = str(uuid4())
