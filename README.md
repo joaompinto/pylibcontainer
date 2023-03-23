@@ -16,7 +16,7 @@ Status
 pylibcontainer it's in a verly early stage of development.
 
 Feature list:
-- [X] - Download and validate rootfs distro tarballs 
+- [X] - Download and extract systems from rootfs archives
 - Unshare from parent namespace
     * [X] Filesystem mounts
     * [X] Network

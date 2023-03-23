@@ -1,4 +1,3 @@
-from __future__ import print_function
 import os
 import shutil
 import hashlib
@@ -9,7 +8,6 @@ from hashlib import sha256
 from os.path import expanduser, join, exists, basename
 from .utils import HumanSize
 from .tar import extract_layer
-from . import trust
 from . import container
 from .colorhelper import print_info, print_error, print_warn, print_success
 from .colorhelper import success
@@ -31,7 +29,7 @@ class Cache(object):
             os.makedirs(CACHE_PATH, 0o700)
 
     def get(self, cache_key, default=None):
-        """ return info for cached file """
+        """return info for cached file"""
         cache_hash = sha256(cache_key.encode()).hexdigest()
         cache_fn = join(CACHE_PATH, "url_" + cache_hash)
 
@@ -44,7 +42,7 @@ class Cache(object):
         return default
 
     def put(self, filename, cache_key):
-        """ put a file into cache """
+        """put a file into cache"""
         cache_hash = sha256(cache_key.encode()).hexdigest()
         cache_fn = join(CACHE_PATH, "url_" + cache_hash)
         shutil.move(filename, cache_fn)
@@ -52,9 +50,10 @@ class Cache(object):
 
 
 def download(image_url):
-    """ Download image (if not found in cache) and return it's filename """
+    """Download image (if not found in cache) and return it's filename"""
 
     response = requests.head(image_url)
+    response.raise_for_status()
     file_size = remote_file_size = int(response.headers.get("Content-Length"))
     remote_last_modified = parsedate(response.headers.get("Last-Modified")).replace(
         tzinfo=None
@@ -99,14 +98,13 @@ def download(image_url):
                 tmp_file.write(chunk)
                 tmp_file.flush()
 
-    # Verify image integrity
-    trust_verify = trust.verify(image_url, tmp_file.name, remote_sha256.hexdigest())
-    if not trust_verify or not trust_verify.valid or not trust_verify.username:
-        print_error("Integrity/authenticity error - GPG signature mismatch!")
-        exit(3)
-    print("{0:>10}: {1}".format("GPG Signer", success(trust_verify.username)))
-    print("{0:>10}: {1}".format("GPG ID", success(trust_verify.pubkey_fingerprint)))
-    print("{0:>10}: {1}".format("Creation", success(trust_verify.creation_date)))
+    # trust_verify = trust.verify(image_url, tmp_file.name, remote_sha256.hexdigest())
+    # if not trust_verify or not trust_verify.valid or not trust_verify.username:
+    #     print_error("Integrity/authenticity error - GPG signature mismatch!")
+    #     exit(3)
+    # print("{0:>10}: {1}".format("GPG Signer", success(trust_verify.username)))
+    # print("{0:>10}: {1}".format("GPG ID", success(trust_verify.pubkey_fingerprint)))
+    # print("{0:>10}: {1}".format("Creation", success(trust_verify.creation_date)))
 
     return cache.put(tmp_file.name, image_url)
 

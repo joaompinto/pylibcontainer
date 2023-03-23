@@ -8,8 +8,8 @@ def eprint(*args, **kwargs):
 
 
 class HumanSize(int):
-    """ define a size class to allow custom formatting
-        Implements a format specifier of S for the size class - which displays a human readable in b, kb, Mb etc
+    """define a size class to allow custom formatting
+    Implements a format specifier of S for the size class - which displays a human readable in b, kb, Mb etc
     """
 
     def __format__(self, fmt):

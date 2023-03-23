@@ -49,5 +49,6 @@ def setup_package():
         include_package_data=True,
     )
 
+
 if __name__ == "__main__":
     setup_package()
